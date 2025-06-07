@@ -1,0 +1,74 @@
+body {
+    background-color: #E7E7E7;
+    color: rgb(255, 255, 255);
+    font-family: 'Arial Unicode MS', Arial, sans-serif;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    min-height: 100vh;
+}
+
+#blocks-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0px;
+    padding: 0px;
+    margin: 0;
+}
+
+.block {
+    padding: 8px;
+    border-radius: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+}
+
+.block img {
+    max-width: 100%;
+    border-radius: 0px;
+}
+
+.block a {
+    color: #40ff00;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.block {
+    font-size: 0.9rem;
+    color: rgb(255, 255, 255);
+    position: relative;
+    overflow: hidden;
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.block:hover {
+    filter: grayscale(0%);
+}
+
+.thumbnail {
+    max-width: 100%;
+    border-radius: 0px;
+}
+
+/* Media Queries for responsive block layout */
+@media screen and (max-width: 678px) {
+    #blocks-container {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    #blocks-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Hide all other UI elements */
+.navbar, .bio, .tele_ticker, .about-overlay, .loading-bar-container {
+    display: none !important;
+}

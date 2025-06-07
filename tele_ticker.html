@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Telegram Ticker</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Helvetica, Arial, sans-serif;
+      background: transparent; /* Rendi lo sfondo trasparente */
+    }
+
+    .tele_ticker {
+      position: relative; /* Cambia da fixed a relative */
+      width: 100%;
+      margin: 0;
+    }
+    
+    .ticker-wrap {
+      width: 100%;
+      background: rgba(255, 255, 255, 0);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(238, 238, 238, 0);
+      border-bottom: 1px solid rgba(238, 238, 238, 0);
+      cursor: pointer;
+      min-height: 30px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0;
+    }
+
+    /* Stile per il contenitore statico dei post */
+    .static-post-container {
+      text-align: center;
+      width: 80%;
+      margin: 0 auto;
+      position: relative;
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Stile per i singoli post */
+    .post-item {
+      position: absolute;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      width: 100%;
+      text-align: center;
+      display: none;
+      padding: 5px 10px;
+    }
+
+    .post-item.active {
+      opacity: 1;
+      display: block;
+      position: relative;
+    }
+
+    .post-text {
+      display: inline-block;
+      padding: 0 0px;
+      text-transform: uppercase;  
+      font-weight: bold;
+      user-select: none;
+      font-size: 20px;
+      /* Create gradient text effect */
+      background: linear-gradient(
+          90deg,
+          #000000,  /* Black */
+          #ffffff,  /* White */
+          #000000,  /* Black */
+          #1EFF1E,  /* Neon Green */
+          #f6f6f6,  /* Light Gray */
+          #000000   /* Black */
+      );
+      background-size: 300% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: gradient 18s linear infinite;
+      text-shadow: 0 0 10px rgba(255,255,255,0.2);
+      max-width: 100%;
+      word-wrap: break-word;
+    }
+
+    /* Add gradient animation */
+    @keyframes gradient {
+      0% {
+          background-position: 0% 50%;
+      }
+      100% {
+          background-position: 300% 50%;
+      }
+    }
+
+    /* Preserve Telegram formatting */
+    .post-text b, .post-text strong {
+      font-weight: bold;
+    }
+    
+    .post-text i, .post-text em {
+      font-style: italic;
+    }
+    
+    .post-text a {
+      color: transparent;
+      text-decoration: none;
+      background: linear-gradient(
+          90deg,
+          #000000,  /* Black */
+          #ffffff,  /* White */
+          #000000,  /* Black */
+          #1EFF1E,  /* Neon Green */
+          #f6f6f6,  /* Light Gray */
+          #000000   /* Black */
+      );
+      background-size: 300% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: gradient 18s linear infinite;
+    }
+    
+    .post-text a:hover {
+      text-decoration: underline;
+    }
+
+    /* Loading bar styles */
+    .loading-bar-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #f0f0f0;
+      z-index: 10;
+    }
+    
+    .loading-bar {
+      height: 100%;
+      width: 2%;
+      background-color: #ff1e1e;
+      transition: width 1.2s;
+    }
+
+    /* Media Queries per il ticker */
+    @media screen and (max-width: 847px) {
+      .post-text {
+        font-size: 12px; /* Riduci la dimensione del testo */
+      }
+    }
+
+    @media screen and (max-width: 500px) {
+      .tele_ticker {
+        margin-top: 0; /* Rimuovi il margine superiore */
+      }
+    }
+
+    @media screen and (max-width: 400px) {
+      .tele_ticker {
+        margin-top: 0; /* Rimuovi il valore fisso */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="tele_ticker">
+    <a href="https://t.me/riformalabel" target="_blank">
+      <div class="ticker-wrap">
+        <div class="loading-bar-container" id="loading-bar-container">
+          <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        <div class="static-post-container" id="post-container">
+          <!-- I post verranno inseriti qui dinamicamente -->
+          <div class="post-item active">
+            <div class="post-text">loading news...</div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <script>
+    // Channel configuration - NO API TOKEN NEEDED!
+    const CHANNEL_USERNAME = "rfrm22q"; 
+    
+    // Flag to track if loading is complete
+    let contentLoaded = false;
+    
+    // Array per memorizzare i post
+    let posts = [];
+    
+    // Indice del post attualmente visualizzato
+    let currentPostIndex = 0;
+    
+    // Aggiungi queste opzioni per rendere il widget più embeddabile
+    const EMBED_MODE = true; // Flag per la modalità embed
+    const AUTO_HEIGHT = true; // Comunica l'altezza al genitore
+    
+    // Fetch the latest messages from the public Telegram web version
+    async function fetchTelegramPosts() {
+      try {
+        // Reset loading flag
+        contentLoaded = false;
+        
+        // Mostra il messaggio di caricamento
+        showLoadingMessage();
+        
+        // Start a loading animation that continues until content is loaded
+        startLoadingAnimation();
+        
+        // Try multiple CORS proxies in sequence until one works
+        const proxies = [
+          'https://api.allorigins.win/raw?url=',
+          'https://cors-anywhere.herokuapp.com/',
+          'https://corsproxy.io/?'
+        ];
+        
+        const telegramPublicUrl = `https://t.me/s/${CHANNEL_USERNAME}`;
+        
+        // Show the loading bar container
+        document.getElementById('loading-bar-container').style.display = 'block';
+        let loadingProgress = 0;
+        
+        // Start updating the loading bar
+        const loadingInterval = setInterval(() => {
+          loadingProgress += 2; // Increment progress
+          if (loadingProgress > 90) {
+            loadingProgress = 90; // Cap at 90% until actually loaded
+          }
+          document.getElementById('loading-bar').style.width = loadingProgress + '%';
+        }, 100);
+        
+        // Try each proxy in turn
+        let html = null;
+        let proxyUsed = null;
+        
+        for (const proxy of proxies) {
+          try {
+            console.log(`Trying proxy: ${proxy}`);
+            const finalUrl = proxy.includes('?url=') 
+              ? proxy + encodeURIComponent(telegramPublicUrl)
+              : proxy + telegramPublicUrl;
+              
+            const response = await fetch(finalUrl);
+            
+            if (response.ok) {
+              html = await response.text();
+              proxyUsed = proxy;
+              console.log(`Success with proxy: ${proxy}`);
+              break;
+            }
+          } catch (proxyError) {
+            console.log(`Proxy ${proxy} failed:`, proxyError);
+            // Continue to the next proxy
+          }
+        }
+        
+        if (!html) {
+          throw new Error("All proxies failed");
+        }
+        
+        // Parse the HTML response to extract messages
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Extract messages from the Telegram web page
+        // Try different selectors that might match message text
+        const selectors = [
+          '.tgme_widget_message_text', 
+          '.tgme_widget_message_bubble', 
+          '.js-message_text'
+        ];
+        
+        let messageElements = [];
+        
+        for (const selector of selectors) {
+          const elements = doc.querySelectorAll(selector);
+          if (elements && elements.length > 0) {
+            messageElements = elements;
+            console.log(`Found ${elements.length} messages with selector: ${selector}`);
+            break;
+          }
+        }
+        
+        if (messageElements.length > 0) {
+          // Convert the NodeList to an array of message objects
+          const messagesArray = Array.from(messageElements)
+            .map(element => ({
+              text: element.textContent.trim()
+            }))
+            .filter(msg => {
+              // Filter out empty messages
+              if (!msg.text) return false;
+              
+              // Filter out administrative messages
+              const adminMessages = [
+                "channel created",
+                "invited by",
+                "joined the channel",
+                "changed the channel",
+                "changed channel",
+                "pinned a message",
+                "changed the chat photo",
+                "changed the group photo",
+                "the group was renamed",
+                "the channel was renamed",
+                "changed group name",
+                "changed channel name",
+                "added a new admin",
+                "removed an admin",
+                "added admin",
+                "removed admin",
+                "created the group",
+                "created the channel"
+              ];
+              
+              // Check if the message contains any of the admin phrases
+              const lowerCaseText = msg.text.toLowerCase();
+              return !adminMessages.some(phrase => lowerCaseText.includes(phrase.toLowerCase()));
+            });
+          
+          // If we have actual content messages after filtering
+          if (messagesArray.length > 0) {
+            // Complete the loading bar
+            document.getElementById('loading-bar').style.width = '100%';
+            
+            // Wait a moment with 100% loading bar
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Mark content as loaded
+            contentLoaded = true;
+            clearInterval(loadingInterval);
+            
+            // Hide the loading bar after a short delay
+            setTimeout(() => {
+              document.getElementById('loading-bar-container').style.display = 'none';
+            }, 500);
+            
+            // Save posts globally
+            posts = messagesArray;
+            
+            // Initialize the static post display
+            initializeStaticPosts(posts);
+            
+          } else {
+            // If all were admin messages, show static content
+            document.getElementById('loading-bar').style.width = '100%';
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            contentLoaded = true;
+            clearInterval(loadingInterval);
+            
+            setTimeout(() => {
+              document.getElementById('loading-bar-container').style.display = 'none';
+            }, 500);
+            
+            showStaticContent();
+          }
+        } else {
+          console.log("No message elements found in HTML");
+          
+          document.getElementById('loading-bar').style.width = '100%';
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          contentLoaded = true;
+          clearInterval(loadingInterval);
+          
+          setTimeout(() => {
+            document.getElementById('loading-bar-container').style.display = 'none';
+          }, 500);
+          
+          showStaticContent();
+        }
+      } catch (error) {
+        console.error("Error fetching Telegram posts:", error);
+        
+        document.getElementById('loading-bar').style.width = '100%';
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        contentLoaded = true;
+        clearInterval(loadingInterval);
+        
+        setTimeout(() => {
+          document.getElementById('loading-bar-container').style.display = 'none';
+        }, 500);
+        
+        showStaticContent();
+      }
+    }
+    
+    // Track when loading starts
+    let loadingStartTime = 0;
+    let loadingInterval;
+    
+    // Start loading animation that continues until content is loaded
+    function startLoadingAnimation() {
+      loadingStartTime = Date.now();
+      
+      // Reset the loading bar
+      document.getElementById('loading-bar').style.width = '0%';
+      document.getElementById('loading-bar-container').style.display = 'block';
+    }
+    
+    // Show loading message
+    function showLoadingMessage() {
+      const container = document.getElementById('post-container');
+      container.innerHTML = '<div class="post-item active"><div class="post-text">loading news...</div></div>';
+    }
+    
+    // Fallback to static content
+    function showStaticContent() {
+      const staticContent = [
+        "Visit our Telegram channel for more updates",
+        "Join us on Telegram: @riformalabel",
+        "Latest news and updates available on our Telegram"
+      ];
+      posts = staticContent.map(text => ({ text }));
+      initializeStaticPosts(posts);
+    }
+    
+    // Initialize static post display
+    function initializeStaticPosts(posts) {
+      const container = document.getElementById('post-container');
+      container.innerHTML = '';
+      
+      // Create elements for each post
+      posts.forEach((post, index) => {
+        const postElement = document.createElement('div');
+        postElement.className = 'post-item' + (index === 0 ? ' active' : '');
+        
+        const postText = document.createElement('div');
+        postText.className = 'post-text';
+        
+        // Get text content
+        const text = post.text || "New post on our Telegram channel";
+        
+        // Conserviamo più testo ma controlliamo le dimensioni
+        // Consideriamo il limite di caratteri in base alla lunghezza del messaggio
+        const maxLength = 500; // Aumentiamo il limite di caratteri
+        const truncatedText = text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+        
+        // Format the text with HTML
+        postText.innerHTML = formatText(truncatedText);
+        
+        postElement.appendChild(postText);
+        container.appendChild(postElement);
+      });
+      
+      // Reset current post index
+      currentPostIndex = 0;
+      
+      // Start the rotation
+      startPostRotation();
+      
+      // Mostra il primo post e adatta l'altezza
+      updateContainerHeight();
+    }
+    
+    // Format text with HTML
+    function formatText(text) {
+      return text
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        .replace(/\_(.*?)\_/g, '<i>$1</i>')
+        .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+    }
+    
+    let rotationInterval;
+    
+    // Start post rotation
+    function startPostRotation() {
+      // Clear any existing interval
+      if (rotationInterval) clearInterval(rotationInterval);
+      
+      // Set up the rotation interval
+      rotationInterval = setInterval(() => {
+        rotateToNextPost();
+      }, 4000); // Cambia ogni 4 secondi
+    }
+    
+    // Rotate to the next post
+    function rotateToNextPost() {
+      if (posts.length <= 1) return; // No need to rotate if only one post
+      
+      const container = document.getElementById('post-container');
+      const postItems = container.querySelectorAll('.post-item');
+      
+      // Hide current post
+      postItems[currentPostIndex].classList.remove('active');
+      
+      // Move to next post
+      currentPostIndex = (currentPostIndex + 1) % posts.length;
+      
+      // Show next post
+      postItems[currentPostIndex].classList.add('active');
+      
+      // Aggiorna l'altezza del contenitore per adattarsi al nuovo post
+      updateContainerHeight();
+    }
+    
+    // Funzione per aggiornare l'altezza del contenitore in base al post attivo
+    function updateContainerHeight() {
+      const container = document.getElementById('post-container');
+      const activePost = container.querySelector('.post-item.active');
+      
+      if (activePost) {
+        const tickerWrap = document.querySelector('.ticker-wrap');
+        if (tickerWrap) {
+          tickerWrap.style.transition = 'height 0.5s ease-in-out';
+        }
+        
+        // Comunica l'altezza al genitore se in modalità embed
+        if (AUTO_HEIGHT) {
+          setTimeout(communicateHeight, 600); // Attendi che la transizione sia completa
+        }
+      }
+    }
+    
+    // Aggiungi questa funzione alla fine dello script, prima dei fetch iniziali
+    // Comunica l'altezza al frame genitore se sei in un iframe
+    function communicateHeight() {
+      if (EMBED_MODE && window.parent && window.parent !== window) {
+        const height = document.body.offsetHeight;
+        window.parent.postMessage({ type: 'resize', height: height }, '*');
+      }
+    }
+    
+    // Initial fetch
+    fetchTelegramPosts();
+    
+    // Refresh posts every 5 minutes
+    setInterval(fetchTelegramPosts, 300000);
+  </script>
+</body>
+</html>

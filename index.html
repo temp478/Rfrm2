@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>RIFORMA CATALOGUE</title>
+    <link rel="stylesheet" href="stylesheet.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+     
+    /* Rimuovo tutti gli stili del ticker */
+    .tele_ticker {
+        display: none; /* Nascondo invece di rimuovere completamente */
+    }
+    .ticker-wrap, .ticker, .ticker__item, .ticker-clone, .loading-bar-container, .loading-bar {
+        display: none;
+    }
+
+    /* Rimuovo anche le animazioni correlate */
+    @keyframes ticker {
+        0% { transform: none; }
+        100% { transform: none; }
+    }
+    
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Media Queries che si riferiscono al ticker */
+    @media screen and (max-width: 847px) {
+        .ticker__item {
+            display: none;
+        }
+    }
+
+    @media screen and (max-width: 500px) {
+        .tele_ticker {
+            display: none;
+        }
+    }
+
+    @media screen and (max-width: 400px) {
+        .tele_ticker {
+            display: none;
+        }
+        #blocks-container {
+            margin-top: 120px; /* Mantengo questo valore per il layout */
+        }
+    }
+
+    /* Add styles for about overlay */
+    .about-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        color: black;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1000;
+        cursor: pointer;
+        overflow-y: auto;
+    }
+
+    .about-content {
+      font-size: 2.5vh;
+        position: relative;
+        top: 10%;
+        left: 0;
+        transform: none;
+        width: 80%;
+        margin: 20px auto;
+        padding: 2em;
+        background: rgba(255, 255, 255, 0.406);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 0 20px rgb(251, 251, 251);
+        cursor: default;
+        text-align: justify;
+        line-height: 1.2;
+
+    }
+
+    .bio a, .about-content a {
+      color: transparent;
+text-decoration: none;
+transition: all 0.3s ease;
+/* Create gradient text effect */
+background: linear-gradient(
+    90deg,
+    #000000,  /* Black */
+    #ffffff,  /* White */
+    #000000,  /* Black */
+    #1EFF1E,  /* Neon Green */
+    #f6f6f6,  /* Light Gray */
+    #000000   /* Black */
+);
+background-size: 300% auto;
+-webkit-background-clip: text;
+background-clip: text;
+animation: gradient 18s linear infinite;
+text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+
+    .bio a:hover, .about-content a:hover {
+        border-bottom-color: rgba(0,0,0,0.8);
+    }
+    @media screen and (max-width: 460px) {
+        .about-content {
+            font-size: 2vh;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            width: 80%;
+            max-height: 70vh;
+            overflow-y: auto;
+            transform: none;
+            top: auto;
+        }
+    }
+    </style>
+</head>
+
+<body autoscroll="autoscroll">
+    <div id="blocks-container"></div>
+    <div class="navbar">
+      <div class="title">Riforma Catalogue<br></div>
+      <div class="links">
+        <a href="https://riformalabel.cargo.site/contact-form">contacts</a>
+        <a href="#" id="about-trigger">about</a>
+        <a href="https://t.me/riformalabel" target="_blank">telegram</a>
+        <span> &ensp;&ensp;&ensp;2020&rarr;2025</span>
+        
+        <div class="" href="#" id="channel-link" style="display: none;"></div>
+        
+      </div>
+    </div>
+    <div class="" href="#" id="channel-link" style="display: none;"></div>
+    
+    <div class="bio"><a href="https://riforma.bandcamp.com">Riforma</a> is an experimental music label based in Turin and Berlin, curated by <a href="https://kinked.bandcamp.com" target="_blank">Kinked</a>, <a href="https://adrianocava.bandcamp.com" target="_blank">Adriano Cava</a>, and <a href="https://riforma.bandcamp.com/album/re-malta-orlata" target="_blank">NOT399093</a>.
+     
+      <br>From Tenco-Grime to Hyper-weirdness, posthuman sonic features to Abstract Concretism, FFT-Materialism to Glo-fi, the label encompasses and showcases a wide range of styles including: glidecore, screwgaze, blisscutters, derives of musique concrete and tape-ballardism.
+    </div>
+
+    <div id="about-overlay" class="about-overlay">
+        <div class="about-content">
+            <div id="about-text">
+                <b>Riforma</b> is an experimental music label based in Turin and Berlin, curated by <a href="https://kinked.bandcamp.com" target="_blank">Kinked</a>, <a href="https://adrianocava.bandcamp.com" target="_blank">Adriano Cava</a>, and <a href="https://riforma.bandcamp.com/album/re-malta-orlata" target="_blank">NOT399093</a>.
+                Dedicated to digital and tape releases, the practice of Riforma experiments different tools of expressions on medias such as paper, videos and hybridized formats.
+                The label catalogue is grounded inside and beyond the <a href="https://newweirditalia.cargo.site" target="_blank">New Weird Italia network</a>, shaped by an extensive experience hosting happenings, concerts and radio broadcastings in independent and secret venues/spaces both in Rome and Turin.
+                <br>
+                From Tenco-Grime to Hyper-weirdness, posthuman sonic features to Abstract Concretism, FFT-Materialism to Glo-fi, the label encompasses and showcases a wide range of styles including: glidecore, screwgaze, blisscutters, derives of musique concrete and tape-ballardism.
+            </div>
+        </div>
+    </div>
+
+    <div id="blocks-container"></div>
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+   
+  <script>
+    /* Rimuovo tutto lo script relativo al ticker */
+    
+    // Get elements
+    const aboutTrigger = document.getElementById('about-trigger');
+    const aboutOverlay = document.getElementById('about-overlay');
+    const ticker = document.querySelector('.tele_ticker');
+
+    // Show about overlay
+    aboutTrigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        aboutOverlay.style.display = 'block';
+    });
+
+    // Hide about overlay when clicking outside the content
+    aboutOverlay.addEventListener('click', (e) => {
+        if (e.target === aboutOverlay) {
+            aboutOverlay.style.display = 'none';
+        }
+    });
+
+    // Prevent clicks inside the content from closing the overlay
+    document.querySelector('.about-content').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+  </script>
+</body>
+</html>
