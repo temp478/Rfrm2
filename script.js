@@ -1,5 +1,8 @@
 const channelSlug = 'riforma-catalogue'; // Channel slug
-const apiUrl = `https://api.are.na/v2/channels/${channelSlug}/contents?per=10000`; // Fetch 10000 blocks per request
+
+// DECRESCENTE sort=created_at&direction=desc (ordine di creazione inverso)
+const apiUrl = `https://api.are.na/v2/channels/${channelSlug}/contents?per=10000&sort=created_at&direction=desc`;
+
 let totalBlocks = []; // Array to hold all blocks
 const channelLink = document.getElementById('channel-link');
 channelLink.textContent = channelSlug;
@@ -8,14 +11,17 @@ async function fetchChannelContents(page = 1) {
     try {
         const response = await fetch(`${apiUrl}&page=${page}`);
         const data = await response.json();
-        totalBlocks = totalBlocks.concat(data.contents); // Concatenate new blocks
+        
+        if (page === 1) {
+            totalBlocks = data.contents;
+        } else {
+            totalBlocks = totalBlocks.concat(data.contents);
+        }
 
         // Check if we need to fetch more pages
         if (data.total_pages > page && totalBlocks.length < 3000) {
             await fetchChannelContents(page + 1); // Fetch next page
         } else {
-            // Sort blocks by created_at in ascending order
-            totalBlocks.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
             displayBlocks(totalBlocks.slice(0, 3000)); // Display up to 3000 blocks
         }
     } catch (error) {
